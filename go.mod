@@ -9,10 +9,10 @@ require (
 	code.cloudfoundry.org/urljoiner v0.0.0-20170223060717-5cabba6c0a50
 	github.com/DataDog/datadog-go v3.2.0+incompatible
 	github.com/DataDog/zstd v1.4.0
+	github.com/MasterOfBinary/gobatch v0.0.0-20180929163814-711b27aab3df
 	github.com/Masterminds/squirrel v1.1.0
 	github.com/Microsoft/hcsshim v0.8.7 // indirect
 	github.com/NYTimes/gziphandler v1.1.1
-	github.com/The-Cloud-Source/goryman v0.0.0-20150410173800-c22b6e4a7ac1
 	github.com/aryann/difflib v0.0.0-20170710044230-e206f873d14a
 	github.com/aws/aws-sdk-go v1.25.18
 	github.com/caarlos0/env v3.5.0+incompatible
@@ -31,7 +31,7 @@ require (
 	github.com/containerd/go-cni v0.0.0-20200107172653-c154a49e2c75
 	github.com/containerd/ttrpc v0.0.0-20191028202541-4f1b8fe65a5c // indirect
 	github.com/containerd/typeurl v0.0.0-20190911142611-5eb25027c9fd
-	github.com/coreos/go-oidc v2.0.0+incompatible
+	github.com/coreos/go-oidc v2.0.0+incompatible // indirect
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4
 	github.com/creack/pty v1.1.9 // indirect
 	github.com/cyberark/conjur-api-go v0.6.0
@@ -99,7 +99,7 @@ require (
 	github.com/vito/houdini v1.1.1
 	github.com/vito/twentythousandtonnesofcrudeoil v0.0.0-20180305154709-3b21ad808fcb
 	go.etcd.io/bbolt v1.3.3 // indirect
-	go.opencensus.io v0.22.2
+	go.opencensus.io v0.22.2 // indirect
 	go.opentelemetry.io/otel v0.2.1
 	go.opentelemetry.io/otel/exporter/trace/jaeger v0.2.1
 	go.opentelemetry.io/otel/exporter/trace/stackdriver v0.2.1
