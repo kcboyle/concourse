@@ -3,9 +3,11 @@ package accessor
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"code.cloudfoundry.org/lager"
 	"github.com/concourse/concourse/atc/db"
+	"github.com/patrickmn/go-cache"
 )
 
 //go:generate counterfeiter . Verifier
@@ -36,6 +38,7 @@ func NewAccessFactory(
 		systemClaimKey:    systemClaimKey,
 		systemClaimValues: systemClaimValues,
 		rolesActionMap:    map[string]string{},
+		cache:             cache.New(time.Minute, time.Minute),
 	}
 
 	// Copy rolesActionMap
@@ -52,10 +55,10 @@ type accessFactory struct {
 	systemClaimKey    string
 	systemClaimValues []string
 	rolesActionMap    map[string]string
+	cache             *cache.Cache
 }
 
 func (a *accessFactory) Create(r *http.Request, action string) (Access, error) {
-
 	requiredRole := a.RoleOfAction(action)
 
 	verification := a.verify(r)
@@ -64,16 +67,21 @@ func (a *accessFactory) Create(r *http.Request, action string) (Access, error) {
 		return NewAccessor(verification, requiredRole, a.systemClaimKey, a.systemClaimValues, nil), nil
 	}
 
+	if teams, found := a.cache.Get("teams"); found {
+		return NewAccessor(verification, requiredRole, a.systemClaimKey, a.systemClaimValues, teams.([]db.Team)), nil
+	}
+
 	teams, err := a.teamFactory.GetTeams()
 	if err != nil {
 		return nil, err
 	}
 
+	a.cache.Set("teams", teams, cache.DefaultExpiration)
+
 	return NewAccessor(verification, requiredRole, a.systemClaimKey, a.systemClaimValues, teams), nil
 }
 
 func (a *accessFactory) verify(r *http.Request) Verification {
-
 	claims, err := a.verifier.Verify(r)
 	if err != nil {
 		switch err {
@@ -88,7 +96,6 @@ func (a *accessFactory) verify(r *http.Request) Verification {
 }
 
 func (a *accessFactory) CustomizeActionRoleMap(logger lager.Logger, customMapping CustomActionRoleMap) error {
-
 	// Get all validate role names
 	allKnownRoles := map[string]interface{}{}
 	for _, roleName := range a.rolesActionMap {
