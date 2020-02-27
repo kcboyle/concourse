@@ -649,9 +649,11 @@ func (cmd *RunCommand) constructAPIMembers(
 	dbClock := db.NewClock()
 	dbWall := db.NewWall(dbConn, &dbClock)
 
+	cacher := accessor.NewCacher(teamFactory)
+
 	accessFactory := accessor.NewAccessFactory(
 		cmd.constructTokenVerifier(httpClient),
-		teamFactory,
+		cacher,
 		cmd.SystemClaimKey,
 		cmd.SystemClaimValues,
 	)
@@ -672,6 +674,7 @@ func (cmd *RunCommand) constructAPIMembers(
 		logger,
 		reconfigurableSink,
 		teamFactory,
+		cacher,
 		dbPipelineFactory,
 		dbJobFactory,
 		dbResourceFactory,
@@ -1692,6 +1695,7 @@ func (cmd *RunCommand) constructAPIHandler(
 	logger lager.Logger,
 	reconfigurableSink *lager.ReconfigurableSink,
 	teamFactory db.TeamFactory,
+	cacher accessor.Cacher,
 	dbPipelineFactory db.PipelineFactory,
 	dbJobFactory db.JobFactory,
 	dbResourceFactory db.ResourceFactory,
@@ -1753,6 +1757,7 @@ func (cmd *RunCommand) constructAPIHandler(
 		apiWrapper,
 
 		teamFactory,
+		cacher,
 		dbPipelineFactory,
 		dbJobFactory,
 		dbResourceFactory,

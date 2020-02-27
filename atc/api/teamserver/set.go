@@ -68,9 +68,12 @@ func (s *Server) SetTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	s.cacher.DeleteTeamsCache()
+
 	err = json.NewEncoder(w).Encode(present.Team(team))
 	if err != nil {
 		hLog.Error("failed-to-encode-team", err)
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+
 }

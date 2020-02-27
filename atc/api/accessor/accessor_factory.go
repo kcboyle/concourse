@@ -3,11 +3,9 @@ package accessor
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"code.cloudfoundry.org/lager"
 	"github.com/concourse/concourse/atc/db"
-	"github.com/patrickmn/go-cache"
 )
 
 //go:generate counterfeiter . Verifier
@@ -25,20 +23,25 @@ type AccessFactory interface {
 	Create(*http.Request, string) (Access, error)
 }
 
+//go:generate counterfeiter .  TeamFetcher
+
+type TeamFetcher interface {
+	GetTeams() ([]db.Team, error)
+}
+
 func NewAccessFactory(
 	verifier Verifier,
-	teamFactory db.TeamFactory,
+	teamFetcher TeamFetcher,
 	systemClaimKey string,
 	systemClaimValues []string,
 ) AccessFactory {
 
 	factory := accessFactory{
 		verifier:          verifier,
-		teamFactory:       teamFactory,
+		teamFetcher:       teamFetcher,
 		systemClaimKey:    systemClaimKey,
 		systemClaimValues: systemClaimValues,
 		rolesActionMap:    map[string]string{},
-		cache:             cache.New(time.Minute, time.Minute),
 	}
 
 	// Copy rolesActionMap
@@ -51,11 +54,10 @@ func NewAccessFactory(
 
 type accessFactory struct {
 	verifier          Verifier
-	teamFactory       db.TeamFactory
+	teamFetcher       TeamFetcher
 	systemClaimKey    string
 	systemClaimValues []string
 	rolesActionMap    map[string]string
-	cache             *cache.Cache
 }
 
 func (a *accessFactory) Create(r *http.Request, action string) (Access, error) {
@@ -67,16 +69,10 @@ func (a *accessFactory) Create(r *http.Request, action string) (Access, error) {
 		return NewAccessor(verification, requiredRole, a.systemClaimKey, a.systemClaimValues, nil), nil
 	}
 
-	if teams, found := a.cache.Get("teams"); found {
-		return NewAccessor(verification, requiredRole, a.systemClaimKey, a.systemClaimValues, teams.([]db.Team)), nil
-	}
-
-	teams, err := a.teamFactory.GetTeams()
+	teams, err := a.teamFetcher.GetTeams()
 	if err != nil {
 		return nil, err
 	}
-
-	a.cache.Set("teams", teams, cache.DefaultExpiration)
 
 	return NewAccessor(verification, requiredRole, a.systemClaimKey, a.systemClaimValues, teams), nil
 }
